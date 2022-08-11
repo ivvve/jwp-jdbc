@@ -1,6 +1,5 @@
 package core.jdbc;
 
-import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,17 +13,22 @@ public class JdbcTemplate {
         return list.isEmpty() ? null : list.get(0);
     }
 
-    public <T> List<T> queryForList(String sql, RowMapper<T> mapper) {
-        return this.queryForList(sql, mapper, null);
+    public <T> List<T> queryForList(String sql, RowMapper<T> mapper, Object... parameters) {
+        PreparedStatementParameterSetter setter = pstmt -> {
+            for (int i = 0; i < parameters.length; i++) {
+                Object parameter = parameters[i];
+                pstmt.setObject(i + 1, parameter);
+            }
+        };
+
+        return this.queryForList(sql, mapper, setter);
     }
 
-    public <T> List<T> queryForList(String sql, RowMapper<T> mapper, @Nullable PreparedStatementParameterSetter setter) {
+    public <T> List<T> queryForList(String sql, RowMapper<T> mapper, PreparedStatementParameterSetter setter) {
         try (Connection con = ConnectionManager.getConnection();
              PreparedStatement pstmt = con.prepareStatement(sql)) {
             // execute sql query
-            if (setter != null) {
-                setter.set(pstmt);
-            }
+            setter.set(pstmt);
             ResultSet rs = pstmt.executeQuery();
 
             // get and map data from sql result
