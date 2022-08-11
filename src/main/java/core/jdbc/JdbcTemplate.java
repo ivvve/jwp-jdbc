@@ -42,6 +42,10 @@ public class JdbcTemplate {
         }
     }
 
+    public void update(String sql, Object... parameters) {
+        this.update(sql, this.toPreparedStatementParameterSetter(parameters));
+    }
+
     public void update(String sql, PreparedStatementParameterSetter setter) {
         try (Connection con = ConnectionManager.getConnection();
              PreparedStatement pstmt = con.prepareStatement(sql)) {
