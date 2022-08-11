@@ -58,7 +58,7 @@ public class UserDao {
                         rs.getString("name"),
                         rs.getString("email")
                 ),
-                pstmt -> pstmt.setObject(1, userId)
+                userId
         );
     }
 }

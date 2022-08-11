@@ -8,20 +8,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JdbcTemplate {
+    public <T> T queryForObject(String sql, RowMapper<T> mapper, Object... parameters) {
+        List<T> list = this.queryForList(sql, mapper, this.toPreparedStatementParameterSetter(parameters));
+        return list.isEmpty() ? null : list.get(0);
+    }
+
     public <T> T queryForObject(String sql, RowMapper<T> mapper, PreparedStatementParameterSetter setter) {
         List<T> list = this.queryForList(sql, mapper, setter);
         return list.isEmpty() ? null : list.get(0);
     }
 
     public <T> List<T> queryForList(String sql, RowMapper<T> mapper, Object... parameters) {
-        PreparedStatementParameterSetter setter = pstmt -> {
-            for (int i = 0; i < parameters.length; i++) {
-                Object parameter = parameters[i];
-                pstmt.setObject(i + 1, parameter);
-            }
-        };
-
-        return this.queryForList(sql, mapper, setter);
+        return this.queryForList(sql, mapper, this.toPreparedStatementParameterSetter(parameters));
     }
 
     public <T> List<T> queryForList(String sql, RowMapper<T> mapper, PreparedStatementParameterSetter setter) {
@@ -52,5 +50,14 @@ public class JdbcTemplate {
         } catch (SQLException e) {
             throw new DataAccessException(e);
         }
+    }
+
+    private PreparedStatementParameterSetter toPreparedStatementParameterSetter(Object... parameters) {
+        return pstmt -> {
+            for (int i = 0; i < parameters.length; i++) {
+                Object parameter = parameters[i];
+                pstmt.setObject(i + 1, parameter);
+            }
+        };
     }
 }
